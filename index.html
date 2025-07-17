@@ -6,19 +6,50 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🚀 Fix the Pipeline</h1>
-  <div class="game-info">
-    <div class="level-info">Level: <span id="levelDisplay">1</span></div>
-    <div class="level-info">Score: <span id="scoreDisplay">0</span></div>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">🚀 FIX THE PIPELINE</h1>
+      <div class="subtitle">CYBERPUNK DEVOPS PROTOCOL</div>
+    </div>
+    
+    <div class="game-info">
+      <div class="info-panel">
+        <div class="info-label">LEVEL</div>
+        <div class="info-value" id="levelDisplay">1</div>
+      </div>
+      <div class="info-panel">
+        <div class="info-label">SCORE</div>
+        <div class="info-value" id="scoreDisplay">0</div>
+      </div>
+      <div class="info-panel">
+        <div class="info-label">STATUS</div>
+        <div class="info-value">ACTIVE</div>
+      </div>
+    </div>
+    
+    <div class="instructions">
+      <span class="instruction-text">DRAG AND DROP PIPELINE STEPS TO FIX THE BROKEN CI/CD PIPELINE</span>
+    </div>
+    
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="900" height="600"></canvas>
+    </div>
+    
+    <div class="status-message" id="statusMessage">Click and drag to reorder pipeline steps</div>
+    
+    <div class="control-panel">
+      <button class="cyber-button" id="prevBtn" onclick="game.previousLevel()">
+        <span class="button-text">◀ PREVIOUS</span>
+      </button>
+      <button class="cyber-button" id="resetBtn" onclick="game.resetLevel()">
+        <span class="button-text">↻ RESET</span>
+      </button>
+      <button class="cyber-button" id="nextBtn" onclick="game.nextLevel()">
+        <span class="button-text">NEXT ▶</span>
+      </button>
+    </div>
   </div>
-  <div class="instructions">
-    Drag and drop pipeline steps to fix the broken CI/CD pipeline!
-  </div>
-  <canvas id="gameCanvas" width="800" height="500"></canvas>
-  <div class="status" id="statusMessage">Click and drag to reorder pipeline steps</div>
-  <button class="button" onclick="game.previousLevel()">Previous Level</button>
-  <button class="button" onclick="game.resetLevel()">Reset Level</button>
-  <button class="button" onclick="game.nextLevel()">Next Level</button>
+  
   <script src="game.js"></script>
 </body>
 </html>
