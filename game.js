@@ -77,16 +77,25 @@ class PipelineGame {
     const stepWidth = 120;
     const stepHeight = 70;
     const stepsPerRow = Math.min(6, this.currentLevel.steps.length);
+    const verticalSpacing = 10; // Reduced spacing to fit within canvas
     const totalWidth = stepsPerRow * stepWidth + (stepsPerRow - 1) * 20;
     const startX = (this.canvas.width - totalWidth) / 2;
-    const startY = 250;
+    const startY = 150; // Adjusted to fit all steps within canvas height
+    
+    const numRows = Math.ceil(this.currentLevel.steps.length / stepsPerRow);
+    const totalHeight = numRows * stepHeight + (numRows - 1) * verticalSpacing;
+    
+    // Ensure steps fit within canvas height
+    if (startY + totalHeight > this.canvas.height - 50) {
+      console.warn("Steps may be out of canvas bounds, consider increasing canvas height or reducing step size");
+    }
     
     this.currentLevel.steps.forEach((step, index) => {
       const row = Math.floor(index / stepsPerRow);
       const col = index % stepsPerRow;
       
       step.x = startX + (col * (stepWidth + 20));
-      step.y = startY + (row * (stepHeight + 20));
+      step.y = startY + (row * (stepHeight + verticalSpacing));
       step.width = stepWidth;
       step.height = stepHeight;
       step.currentIndex = index;
@@ -153,7 +162,7 @@ class PipelineGame {
   }
   
   drawPipelineFlow() {
-    const y = 200;
+    const y = 100; // Adjusted to align with new startY
     const startX = 50;
     const endX = this.canvas.width - 50;
     
@@ -252,14 +261,14 @@ class PipelineGame {
     this.ctx.font = "16px Orbitron";
     this.ctx.fillStyle = "#ffff00";
     this.ctx.textAlign = "left";
-    this.ctx.fillText("CORRECT ORDER:", 50, 450);
+    this.ctx.fillText("CORRECT ORDER:", 50, 350); // Adjusted to fit above steps
     
     const correctOrder = [...this.currentLevel.steps].sort((a, b) => a.correct - b.correct);
     correctOrder.forEach((step, index) => {
       this.ctx.fillStyle = step.color;
       this.ctx.shadowColor = step.color;
       this.ctx.shadowBlur = 5;
-      this.ctx.fillText(`${index + 1}. ${step.name}`, 50, 475 + (index * 25));
+      this.ctx.fillText(`${index + 1}. ${step.name}`, 50, 375 + (index * 25));
       this.ctx.shadowBlur = 0;
     });
   }
@@ -411,3 +420,8 @@ let game;
 document.addEventListener('DOMContentLoaded', function() {
   game = new PipelineGame();
 });
+
+// Add button event listeners
+document.getElementById('prevBtn').addEventListener('click', () => game.previousLevel());
+document.getElementById('resetBtn').addEventListener('click', () => game.resetLevel());
+document.getElementById('nextBtn').addEventListener('click', () => game.nextLevel());
