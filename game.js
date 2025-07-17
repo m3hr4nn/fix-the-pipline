@@ -261,6 +261,16 @@ class PipelineGame {
     statusEl.className = `status ${className}`;
   }
   
+  previousLevel() {
+    if (this.level > 1) {
+      this.level--;
+      this.initLevel();
+      this.updateStatus("Moved to previous level", "");
+    } else {
+      this.updateStatus("You're already at the first level!", "");
+    }
+  }
+  
   resetLevel() {
     this.initLevel();
     this.updateStatus("Level reset. Fix the pipeline!", "");
