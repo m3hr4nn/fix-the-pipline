@@ -1,7 +1,7 @@
-#🛠️ Fix the Pipeline — A Clever CI/CD Puzzle
+## 🛠️ Fix the Pipeline — A Clever CI/CD Puzzle
 >"It worked on my machine… but not in the pipeline."
-— Every developer, ever. 
+>>— Every developer, ever. 
 
-Welcome to Fix the Pipeline — a hands-on, educational challenge that turns CI/CD debugging into a game. This repository is intentionally broken. Your mission? 🕵️‍♂️ Restore the pipeline, make the tests pass, and get that glorious green checkmark.
+Welcome to Fix the Pipeline — a hands-on, educational challenge that turns CI/CD debugging into a game. This repository is intentionally broken. Your mission? 🕵️‍♂️ Restore the pipeline, make the tests pass, and get that _Cyberpunk DevOps Master_ title!
 
 https://m3hr4nn.github.io/fix-the-pipline/
