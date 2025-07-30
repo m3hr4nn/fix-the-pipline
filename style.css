@@ -13,6 +13,7 @@ body {
   overflow-x: hidden;
   min-height: 100vh;
   position: relative;
+  touch-action: manipulation;
 }
 
 body::before {
@@ -32,16 +33,16 @@ body::before {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 10px;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .title {
-  font-size: 3.5em;
+  font-size: clamp(1.8em, 5vw, 3.5em);
   font-weight: 900;
   color: #00ffcc;
   text-shadow: 
@@ -54,7 +55,7 @@ body::before {
 }
 
 .subtitle {
-  font-size: 1.2em;
+  font-size: clamp(0.8em, 3vw, 1.2em);
   color: #ff0096;
   font-weight: 700;
   letter-spacing: 3px;
@@ -64,21 +65,23 @@ body::before {
 .game-info {
   display: flex;
   justify-content: center;
-  gap: 30px;
-  margin-bottom: 30px;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .info-panel {
   background: rgba(0, 255, 204, 0.05);
   border: 2px solid #00ffcc;
   border-radius: 10px;
-  padding: 15px 25px;
+  padding: 10px 20px;
   text-align: center;
   box-shadow: 
     0 0 20px rgba(0, 255, 204, 0.3),
     inset 0 0 20px rgba(0, 255, 204, 0.1);
   position: relative;
   overflow: hidden;
+  min-width: 80px;
 }
 
 .info-panel::before {
@@ -100,14 +103,14 @@ body::before {
 }
 
 .info-label {
-  font-size: 0.9em;
+  font-size: 0.8em;
   color: #888;
   margin-bottom: 5px;
   font-weight: 700;
 }
 
 .info-value {
-  font-size: 1.8em;
+  font-size: clamp(1.2em, 4vw, 1.8em);
   font-weight: 900;
   color: #00ffcc;
   text-shadow: 0 0 10px #00ffcc;
@@ -115,14 +118,15 @@ body::before {
 
 .instructions {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  padding: 0 10px;
 }
 
 .instruction-text {
-  font-size: 1.1em;
+  font-size: clamp(0.8em, 2.5vw, 1.1em);
   color: #ffff00;
   background: rgba(255, 255, 0, 0.1);
-  padding: 15px 30px;
+  padding: 10px 20px;
   border-radius: 20px;
   border: 1px solid #ffff00;
   display: inline-block;
@@ -137,7 +141,8 @@ body::before {
 
 .canvas-container {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  padding: 0 10px;
 }
 
 canvas {
@@ -149,6 +154,9 @@ canvas {
     inset 0 0 30px rgba(0, 255, 204, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
+  max-width: 100%;
+  height: auto;
+  touch-action: none;
 }
 
 canvas:hover {
@@ -157,16 +165,115 @@ canvas:hover {
     inset 0 0 40px rgba(0, 255, 204, 0.2);
 }
 
+/* Correct Order Table Styles */
+.correct-order-container {
+  margin: 20px auto;
+  max-width: 900px;
+  padding: 0 10px;
+}
+
+.correct-order-title {
+  font-size: clamp(1em, 3vw, 1.3em);
+  color: #ffff00;
+  text-align: center;
+  margin-bottom: 15px;
+  text-shadow: 0 0 10px #ffff00;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 15px;
+  background: rgba(0, 255, 204, 0.05);
+  border: 2px solid #00ffcc;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 204, 0.3),
+    inset 0 0 20px rgba(0, 255, 204, 0.1);
+}
+
+.correct-order-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Orbitron', monospace;
+}
+
+.correct-order-table td {
+  padding: 15px 10px;
+  text-align: center;
+  border: 2px solid rgba(0, 255, 204, 0.3);
+  position: relative;
+  font-weight: 700;
+  font-size: clamp(0.8em, 2.5vw, 1em);
+  min-width: 80px;
+}
+
+.step-cell {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  color: #fff;
+  text-shadow: 0 0 5px currentColor;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.step-cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.step-cell:hover::before {
+  transform: translateX(100%);
+}
+
+.step-cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
+}
+
+.step-number {
+  display: block;
+  font-size: 0.8em;
+  color: #00ffcc;
+  margin-bottom: 5px;
+  text-shadow: 0 0 5px #00ffcc;
+}
+
+.step-name {
+  display: block;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+/* Color coding for different steps */
+.step-cell[data-step="BUILD"] { border-color: #00ffcc; color: #00ffcc; }
+.step-cell[data-step="CODE"] { border-color: #ff0096; color: #ff0096; }
+.step-cell[data-step="PLAN"] { border-color: #00ccff; color: #00ccff; }
+.step-cell[data-step="TEST"] { border-color: #ffff00; color: #ffff00; }
+.step-cell[data-step="SECURITY"] { border-color: #ff6600; color: #ff6600; }
+.step-cell[data-step="PACKAGE"] { border-color: #ff6600; color: #ff6600; }
+.step-cell[data-step="DEPLOY"] { border-color: #00ff00; color: #00ff00; }
+.step-cell[data-step="RELEASE"] { border-color: #ff3300; color: #ff3300; }
+.step-cell[data-step="MONITOR"] { border-color: #9900ff; color: #9900ff; }
+
 .status-message {
   text-align: center;
-  font-size: 1.2em;
+  font-size: clamp(0.9em, 3vw, 1.2em);
   font-weight: 700;
-  margin-bottom: 30px;
-  padding: 15px;
+  margin-bottom: 20px;
+  padding: 10px;
   border-radius: 10px;
   background: rgba(0, 255, 204, 0.1);
   border: 1px solid #00ffcc;
   text-shadow: 0 0 5px currentColor;
+  margin: 0 10px 20px 10px;
 }
 
 .status-message.success {
@@ -197,17 +304,19 @@ canvas:hover {
 .control-panel {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  padding: 0 10px;
 }
 
 .cyber-button {
   background: linear-gradient(45deg, #1a1a2e, #16213e);
   border: 2px solid #00ffcc;
   color: #00ffcc;
-  padding: 15px 30px;
+  padding: 12px 20px;
   font-family: 'Orbitron', monospace;
-  font-size: 1em;
+  font-size: clamp(0.8em, 2.5vw, 1em);
   font-weight: 700;
   cursor: pointer;
   border-radius: 25px;
@@ -219,6 +328,8 @@ canvas:hover {
   box-shadow: 
     0 0 20px rgba(0, 255, 204, 0.3),
     inset 0 0 20px rgba(0, 255, 204, 0.1);
+  min-width: 120px;
+  touch-action: manipulation;
 }
 
 .cyber-button:hover {
@@ -257,7 +368,6 @@ canvas:hover {
   z-index: 1;
 }
 
-/* Disabled state */
 .cyber-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -275,18 +385,45 @@ canvas:hover {
     inset 0 0 20px rgba(102, 102, 102, 0.1);
 }
 
-/* Responsive design */
+/* Mobile specific styles */
 @media (max-width: 768px) {
-  .title {
-    font-size: 2.5em;
+  .container {
+    padding: 5px;
   }
   
   .game-info {
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
+    gap: 10px;
   }
   
+  .info-panel {
+    padding: 8px 15px;
+    min-width: 70px;
+  }
+  
+  .control-panel {
+    gap: 8px;
+  }
+  
+  .cyber-button {
+    padding: 10px 15px;
+    min-width: 100px;
+  }
+  
+  canvas {
+    border-width: 2px;
+  }
+  
+  .correct-order-table td {
+    padding: 10px 5px;
+    font-size: clamp(0.7em, 2vw, 0.9em);
+  }
+  
+  .table-container {
+    border-width: 1px;
+  }
+}
+
+@media (max-width: 480px) {
   .control-panel {
     flex-direction: column;
     align-items: center;
@@ -296,15 +433,21 @@ canvas:hover {
     width: 200px;
   }
   
-  canvas {
-    width: 100%;
-    height: auto;
+  .correct-order-table td {
+    padding: 8px 3px;
+    min-width: 60px;
+  }
+  
+  .step-number {
+    font-size: 0.7em;
+    margin-bottom: 3px;
   }
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {

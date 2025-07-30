@@ -7,16 +7,164 @@ class PipelineGame {
     this.draggedStep = null;
     this.dragOffset = { x: 0, y: 0 };
     this.mousePos = { x: 0, y: 0 };
+    this.isTouching = false;
     
+    this.setupCanvas();
     this.setupEventListeners();
     this.initLevel();
   }
   
+  setupCanvas() {
+    // Make canvas responsive
+    const container = this.canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+    const maxWidth = Math.min(900, rect.width - 20);
+    const maxHeight = Math.min(500, window.innerHeight * 0.5); // Reduced height to make room for table
+    
+    this.canvas.width = maxWidth;
+    this.canvas.height = maxHeight;
+    this.canvas.style.width = maxWidth + 'px';
+    this.canvas.style.height = maxHeight + 'px';
+  }
+  
   setupEventListeners() {
+    // Mouse events
     this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
     this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
     this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
     this.canvas.addEventListener('mouseleave', (e) => this.handleMouseUp(e));
+    
+    // Touch events for mobile
+    this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+    this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+    this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+    this.canvas.addEventListener('touchcancel', (e) => this.handleTouchEnd(e), { passive: false });
+    
+    // Resize handling
+    window.addEventListener('resize', () => {
+      this.setupCanvas();
+      this.calculatePositions();
+      this.draw();
+    });
+    
+    // Button event listeners
+    document.getElementById('prevBtn').addEventListener('click', () => this.previousLevel());
+    document.getElementById('resetBtn').addEventListener('click', () => this.resetLevel());
+    document.getElementById('nextBtn').addEventListener('click', () => this.nextLevel());
+  }
+  
+  getEventPos(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    
+    if (e.touches) {
+      // Touch event
+      const touch = e.touches[0] || e.changedTouches[0];
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY
+      };
+    } else {
+      // Mouse event
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+  }
+  
+  handleTouchStart(e) {
+    e.preventDefault();
+    this.isTouching = true;
+    const pos = this.getEventPos(e);
+    this.handlePointerDown(pos.x, pos.y);
+  }
+  
+  handleTouchMove(e) {
+    e.preventDefault();
+    if (!this.isTouching) return;
+    const pos = this.getEventPos(e);
+    this.handlePointerMove(pos.x, pos.y);
+  }
+  
+  handleTouchEnd(e) {
+    e.preventDefault();
+    this.isTouching = false;
+    const pos = this.getEventPos(e);
+    this.handlePointerUp(pos.x, pos.y);
+  }
+  
+  handleMouseDown(e) {
+    if (this.isTouching) return;
+    const pos = this.getEventPos(e);
+    this.handlePointerDown(pos.x, pos.y);
+  }
+  
+  handleMouseMove(e) {
+    if (this.isTouching) return;
+    const pos = this.getEventPos(e);
+    this.handlePointerMove(pos.x, pos.y);
+  }
+  
+  handleMouseUp(e) {
+    if (this.isTouching) return;
+    const pos = this.getEventPos(e);
+    this.handlePointerUp(pos.x, pos.y);
+  }
+  
+  handlePointerDown(x, y) {
+    for (let step of this.currentLevel.steps) {
+      if (x >= step.x && x <= step.x + step.width &&
+          y >= step.y && y <= step.y + step.height) {
+        this.draggedStep = step;
+        this.dragOffset = {
+          x: x - step.x,
+          y: y - step.y
+        };
+        this.mousePos = { x, y };
+        break;
+      }
+    }
+    this.draw();
+  }
+  
+  handlePointerMove(x, y) {
+    this.mousePos = { x, y };
+    if (this.draggedStep) {
+      this.draw();
+    }
+  }
+  
+  handlePointerUp(x, y) {
+    if (!this.draggedStep) return;
+    
+    let dropTarget = null;
+    for (let step of this.currentLevel.steps) {
+      if (step !== this.draggedStep &&
+          x >= step.x && x <= step.x + step.width &&
+          y >= step.y && y <= step.y + step.height) {
+        dropTarget = step;
+        break;
+      }
+    }
+    
+    if (dropTarget) {
+      const draggedIndex = this.draggedStep.currentIndex;
+      const targetIndex = dropTarget.currentIndex;
+      
+      this.draggedStep.currentIndex = targetIndex;
+      dropTarget.currentIndex = draggedIndex;
+      
+      const steps = this.currentLevel.steps;
+      [steps[draggedIndex], steps[targetIndex]] = [steps[targetIndex], steps[draggedIndex]];
+      
+      this.calculatePositions();
+      this.checkWin();
+    }
+    
+    this.draggedStep = null;
+    this.draw();
   }
   
   initLevel() {
@@ -61,6 +209,7 @@ class PipelineGame {
     this.draw();
     this.updateDisplay();
     this.updateButtonStates();
+    this.updateCorrectOrderTable();
   }
   
   shuffleSteps() {
@@ -74,32 +223,50 @@ class PipelineGame {
   }
   
   calculatePositions() {
-    const stepWidth = 120;
-    const stepHeight = 70;
-    const stepsPerRow = Math.min(6, this.currentLevel.steps.length);
-    const verticalSpacing = 10; // Reduced spacing to fit within canvas
+    const stepWidth = Math.min(120, this.canvas.width / 6);
+    const stepHeight = Math.min(70, stepWidth * 0.6);
+    const maxStepsPerRow = Math.floor(this.canvas.width / (stepWidth + 20));
+    const stepsPerRow = Math.min(maxStepsPerRow, this.currentLevel.steps.length);
     const totalWidth = stepsPerRow * stepWidth + (stepsPerRow - 1) * 20;
     const startX = (this.canvas.width - totalWidth) / 2;
-    const startY = 150; // Adjusted to fit all steps within canvas height
-    
-    const numRows = Math.ceil(this.currentLevel.steps.length / stepsPerRow);
-    const totalHeight = numRows * stepHeight + (numRows - 1) * verticalSpacing;
-    
-    // Ensure steps fit within canvas height
-    if (startY + totalHeight > this.canvas.height - 50) {
-      console.warn("Steps may be out of canvas bounds, consider increasing canvas height or reducing step size");
-    }
+    const startY = Math.max(120, this.canvas.height * 0.3);
     
     this.currentLevel.steps.forEach((step, index) => {
       const row = Math.floor(index / stepsPerRow);
       const col = index % stepsPerRow;
       
       step.x = startX + (col * (stepWidth + 20));
-      step.y = startY + (row * (stepHeight + verticalSpacing));
+      step.y = startY + (row * (stepHeight + 15));
       step.width = stepWidth;
       step.height = stepHeight;
       step.currentIndex = index;
     });
+  }
+  
+  updateCorrectOrderTable() {
+    const tableBody = document.getElementById('correctOrderBody');
+    const correctOrder = [...this.currentLevel.steps].sort((a, b) => a.correct - b.correct);
+    
+    // Clear existing content
+    tableBody.innerHTML = '';
+    
+    // Create single row
+    const row = document.createElement('tr');
+    
+    correctOrder.forEach((step, index) => {
+      const cell = document.createElement('td');
+      cell.className = 'step-cell';
+      cell.setAttribute('data-step', step.name);
+      
+      cell.innerHTML = `
+        <span class="step-number">${index + 1}</span>
+        <span class="step-name">${step.name}</span>
+      `;
+      
+      row.appendChild(cell);
+    });
+    
+    tableBody.appendChild(row);
   }
   
   draw() {
@@ -114,7 +281,8 @@ class PipelineGame {
     this.drawGrid();
     
     // Draw level title with glow effect
-    this.ctx.font = "bold 28px Orbitron";
+    const fontSize = Math.min(28, this.canvas.width / 20);
+    this.ctx.font = `bold ${fontSize}px Orbitron`;
     this.ctx.fillStyle = "#00ffcc";
     this.ctx.shadowColor = "#00ffcc";
     this.ctx.shadowBlur = 20;
@@ -135,9 +303,6 @@ class PipelineGame {
     if (this.draggedStep) {
       this.drawStep(this.draggedStep, this.mousePos.x - this.dragOffset.x, this.mousePos.y - this.dragOffset.y, true);
     }
-    
-    // Draw correct order reference
-    this.drawCorrectOrder();
   }
   
   drawGrid() {
@@ -162,7 +327,7 @@ class PipelineGame {
   }
   
   drawPipelineFlow() {
-    const y = 100; // Adjusted to align with new startY
+    const y = 90;
     const startX = 50;
     const endX = this.canvas.width - 50;
     
@@ -188,7 +353,8 @@ class PipelineGame {
     this.ctx.shadowBlur = 0;
     
     // Pipeline label
-    this.ctx.font = "16px Orbitron";
+    const labelSize = Math.min(16, this.canvas.width / 30);
+    this.ctx.font = `${labelSize}px Orbitron`;
     this.ctx.fillStyle = "#00ffcc";
     this.ctx.textAlign = "left";
     this.ctx.fillText("PIPELINE FLOW", startX, y - 15);
@@ -213,13 +379,15 @@ class PipelineGame {
     
     // Draw step name
     this.ctx.fillStyle = "#000";
-    this.ctx.font = "bold 12px Orbitron";
+    const nameSize = Math.min(12, step.width / 8);
+    this.ctx.font = `bold ${nameSize}px Orbitron`;
     this.ctx.textAlign = "center";
     this.ctx.fillText(step.name, x + step.width / 2, y + step.height / 2 + 5);
     
     // Draw index number
     this.ctx.fillStyle = "#fff";
-    this.ctx.font = "bold 14px Orbitron";
+    const indexSize = Math.min(14, step.width / 7);
+    this.ctx.font = `bold ${indexSize}px Orbitron`;
     this.ctx.textAlign = "left";
     this.ctx.fillText(step.currentIndex + 1, x + 8, y + 20);
     
@@ -257,22 +425,6 @@ class PipelineGame {
     this.ctx.stroke();
   }
   
-  drawCorrectOrder() {
-    this.ctx.font = "16px Orbitron";
-    this.ctx.fillStyle = "#ffff00";
-    this.ctx.textAlign = "left";
-    this.ctx.fillText("CORRECT ORDER:", 50, 350); // Adjusted to fit above steps
-    
-    const correctOrder = [...this.currentLevel.steps].sort((a, b) => a.correct - b.correct);
-    correctOrder.forEach((step, index) => {
-      this.ctx.fillStyle = step.color;
-      this.ctx.shadowColor = step.color;
-      this.ctx.shadowBlur = 5;
-      this.ctx.fillText(`${index + 1}. ${step.name}`, 50, 375 + (index * 25));
-      this.ctx.shadowBlur = 0;
-    });
-  }
-  
   darkenColor(color, factor) {
     const hex = color.replace('#', '');
     const r = parseInt(hex.substr(0, 2), 16);
@@ -280,72 +432,6 @@ class PipelineGame {
     const b = parseInt(hex.substr(4, 2), 16);
     
     return `rgb(${Math.floor(r * factor)}, ${Math.floor(g * factor)}, ${Math.floor(b * factor)})`;
-  }
-  
-  handleMouseDown(e) {
-    const rect = this.canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    for (let step of this.currentLevel.steps) {
-      if (mouseX >= step.x && mouseX <= step.x + step.width &&
-          mouseY >= step.y && mouseY <= step.y + step.height) {
-        this.draggedStep = step;
-        this.dragOffset = {
-          x: mouseX - step.x,
-          y: mouseY - step.y
-        };
-        this.mousePos = { x: mouseX, y: mouseY };
-        break;
-      }
-    }
-  }
-  
-  handleMouseMove(e) {
-    const rect = this.canvas.getBoundingClientRect();
-    this.mousePos = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-    
-    if (this.draggedStep) {
-      this.draw();
-    }
-  }
-  
-  handleMouseUp(e) {
-    if (!this.draggedStep) return;
-    
-    const rect = this.canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    let dropTarget = null;
-    for (let step of this.currentLevel.steps) {
-      if (step !== this.draggedStep &&
-          mouseX >= step.x && mouseX <= step.x + step.width &&
-          mouseY >= step.y && mouseY <= step.y + step.height) {
-        dropTarget = step;
-        break;
-      }
-    }
-    
-    if (dropTarget) {
-      const draggedIndex = this.draggedStep.currentIndex;
-      const targetIndex = dropTarget.currentIndex;
-      
-      this.draggedStep.currentIndex = targetIndex;
-      dropTarget.currentIndex = draggedIndex;
-      
-      const steps = this.currentLevel.steps;
-      [steps[draggedIndex], steps[targetIndex]] = [steps[targetIndex], steps[draggedIndex]];
-      
-      this.calculatePositions();
-      this.checkWin();
-    }
-    
-    this.draggedStep = null;
-    this.draw();
   }
   
   checkWin() {
@@ -420,8 +506,3 @@ let game;
 document.addEventListener('DOMContentLoaded', function() {
   game = new PipelineGame();
 });
-
-// Add button event listeners
-document.getElementById('prevBtn').addEventListener('click', () => game.previousLevel());
-document.getElementById('resetBtn').addEventListener('click', () => game.resetLevel());
-document.getElementById('nextBtn').addEventListener('click', () => game.nextLevel());

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Fix the Pipeline</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -35,16 +36,27 @@
       <canvas id="gameCanvas" width="900" height="600"></canvas>
     </div>
     
+    <div class="correct-order-container">
+      <h3 class="correct-order-title">CORRECT ORDER:</h3>
+      <div class="table-container">
+        <table class="correct-order-table" id="correctOrderTable">
+          <tbody id="correctOrderBody">
+            <!-- Table will be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
     <div class="status-message" id="statusMessage">Click and drag to reorder pipeline steps</div>
     
     <div class="control-panel">
-      <button class="cyber-button" id="prevBtn" onclick="game.previousLevel()">
+      <button class="cyber-button" id="prevBtn">
         <span class="button-text">◀ PREVIOUS</span>
       </button>
-      <button class="cyber-button" id="resetBtn" onclick="game.resetLevel()">
+      <button class="cyber-button" id="resetBtn">
         <span class="button-text">↻ RESET</span>
       </button>
-      <button class="cyber-button" id="nextBtn" onclick="game.nextLevel()">
+      <button class="cyber-button" id="nextBtn">
         <span class="button-text">NEXT ▶</span>
       </button>
     </div>
